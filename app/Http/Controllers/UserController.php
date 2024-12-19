@@ -17,23 +17,27 @@ class UserController extends Controller
     public function index(request $request)
     {
 
-        
-        
+        if($request->sortBy == "" || $request->sortBy == null){
+            $sortBy = "created_at";
+        }else{
+            $sortBy = $request->sortBy;
+        }
+
         if($request->email == null || $request->email == "" && $request->name == null || $request->name == ""){ 
-            $user = User::orderBy('created_at', 'DESC')->where('active', '1')->get();
+            $user = User::orderBy($sortBy, 'ASC')->where('active', '1')->get();
         }else{
             $user = DB::table('users')
             ->selectRaw('id,email,name,created_at')
             ->where('active', '1')
             ->where('email', $request->email)
             ->orWhere('name', $request->name)
-            ->orderBy('created_at', 'DESC')
+            ->orderBy($sortBy, 'ASC')
             ->simplePaginate(5);
         }
         
 
         if (count($user) == 0) { 
-            $user = User::latest()->paginate(5);
+            $user = User::orderBy($sortBy, 'ASC')->where('active', '1')->simplePaginate(5);
             return response()->json([
                 'status' => 'success',
                 'users' => $user,
